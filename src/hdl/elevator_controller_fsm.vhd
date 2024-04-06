@@ -96,21 +96,21 @@ begin
 
 	-- CONCURRENT STATEMENTS ------------------------------------------------------------------------------
 	-- Next State Logic
-    f_Q_next <= <state> when (<condition>) else -- going up
-                ...
-                ...
-                ... -- going down
-                ...
-                ... else
-                ...; -- default case
+    f_Q_next <= s_floor2 when (i_up_down = '1' and i_stop = '0' and f_q = s_floor1) else
+    s_floor3 when (i_up_down = '1' and i_stop = '0' and f_Q = s_floor2) else
+    s_floor4 when (i_up_down = '1' and i_stop = '0' and f_Q = s_floor3) else
+    s_floor3 when (i_up_down = '0' and i_stop = '0' and f_Q = s_floor4) else
+    s_floor2 when (i_up_down = '0' and i_stop = '0' and f_Q = s_floor3) else
+    s_floor1 when (i_up_down = '0' and i_stop = '0' and f_Q = s_floor2) else
+    f_Q;
   
 	-- Output logic
     with f_Q select
-        o_floor <= <value> when s_floor1,
-                ...
-                ...
-                <value> when others; -- default is floor 2
-	
+        o_floor <= "0001" when s_floor1,
+        "0011" when s_floor3,
+        "0100" when s_floor4,
+        "0010" when others;
+        
 	-------------------------------------------------------------------------------------------------------
 	
 	-- PROCESSES ------------------------------------------------------------------------------------------	
@@ -118,6 +118,13 @@ begin
 	register_proc : process (i_clk)
     begin
          -- synchronous reset
+         if (rising_edge(i_clk)) then
+            if i_reset = '1' then
+                f_Q <= s_floor2;
+            elsif i_stop = '0' then
+                f_Q <= f_Q_next;
+            end if;
+         end if;
         
         -- if elevator is enabled, advance floors
         -- if not enabled, stay at current floor
